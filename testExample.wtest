@@ -1,9 +1,140 @@
-import example.pepita
+import materias.*
+import requisitos.*
 
-describe "group of tests for pepita" {
+describe "Test de Materias"{
 
-  test "pepita has initial energy" {
-    assert.equals(100, pepita.energy())
-  }
+        const epl = new Materia(nombre = "Elementos de Programación y Lógica")
+        const mate1 = new Materia(nombre = "Matemática 1", año = 1, creditosQueOtorga = 8)
+        const obj1 = new Materia(nombre = "Objetos 1", año = 1, creditosQueOtorga = 8)
+        const obj2 = new Materia(nombre = "Objetos 2")
+        const obj3 = new Materia(nombre = "Objetos 3")
+        const bd = new Materia(nombre = "Bases de Datos", año = 1, creditosQueOtorga = 8)
+        const pConc = new Materia(nombre = "Programación Concurrente")
+
+        const meya = new Materia(nombre = "Matemáticas para economía y administración")
+        const tys = new Materia(nombre = "Trabajo y sociedad")
+        const economia = new Materia(nombre = "Economía")
+        const desarrolloLocal = new Materia(nombre = "Desarrollo local")
+
+        const lea = new Materia(nombre = "Lectura y escritura académica", año = 1, creditosQueOtorga = 8)
+        const cienciasSalud = new Materia(nombre = "Ciencias de la Salud", año = 1, creditosQueOtorga = 8)
+        const psicologia = new Materia(nombre = "Psicología", año = 2, creditosQueOtorga = 4)
+        const antropologia = new Materia(nombre = "Antropología", año = 2, creditosQueOtorga = 4)
+        const sociologia = new Materia(nombre = "Sociología", año = 3, creditosQueOtorga = 8)
+
+        const programacion = new Carrera(nombre = "Programación", materias = #{epl, mate1, obj1, obj2, obj3, bd, pConc})
+        const tuess = new Carrera(nombre = "TUESS", materias = #{meya, tys, economia, desarrolloLocal})
+        const to = new Carrera(nombre = "Terapia Ocupacional", materias = #{lea, cienciasSalud, psicologia, antropologia, sociologia})
+
+        const alex = new Estudiante()
+        const andy = new Estudiante()
+
+    test "Parte 1 Inscripción A Carreras"{
+
+       alex.inscribirCarrera(programacion)
+       alex.inscribirCarrera(tuess)
+
+       assert.equals(#{programacion, tuess}, alex.carrerasCursando())
+       assert.notThat(alex.estaCursandoLaMateria(to))
+       assert.that(alex.esDeUnaCarreraActual(bd))
+       assert.notThat(alex.esDeUnaCarreraActual(psicologia))
+       assert.throwsException({alex.inscribirCarrera(programacion)})
+
+    }
+
+    test "Parte 2 Historia académica"{
+
+        alex.cursarMateria(mate1, 2)
+        alex.cursarMateria(obj1, 10)
+        alex.cursarMateria(economia, 6)
+        alex.cursarMateria(tys, 8)
+        alex.cursarMateria(mate1, 8)
+        alex.cursarMateria(bd, 2)
+
+        assert.throwsException({alex.cursarMateria(mate1, 7)})
+        assert.throwsException({alex.cursarMateria(bd, 12)})
+        assert.that(alex.aproboLaMateria(mate1))
+        assert.notThat(alex.aproboLaMateria(bd))
+        assert.equals(9, alex.promedioDeMateriasAprobadasDeCarrera(programacion))
+        assert.equals(2, alex.cantidadDeMateriasAprobadasDeCarrera(programacion))
+        assert.equals(7, alex.promedioDeMateriasAprobadasDeCarrera(tuess))
+        assert.throwsException({alex.promedioDeMateriasAprobadasDeCarrera(to)})
+        
+        alex.inscribirCarrera(to)
+        assert.throwsException({alex.promedioDeMateriasAprobadasDeCarrera(to)})
+        assert.equals(8, alex.promedioTotalDeMateriasAprobadas())
+
+        const historial = alex.historialDeLaMateria(mate1)
+
+        assert.equals(2, historial.size())
+        assert.equals(2, historial.first().value())
+        assert.equals(8, historial.last().value())
+
+    }
+
+    test "Parte 3 Inscripciones a las materias"{
+
+        alex.inscribirCarrera(programacion)
+        alex.inscribirCarrera(tuess)
+        andy.inscribirCarrera(programacion)
+
+        alex.cursarMateria(mate1, 2)
+        alex.cursarMateria(obj1, 10)
+        alex.cursarMateria(economia, 6)
+        alex.cursarMateria(tys, 8)
+        alex.cursarMateria(mate1, 8)
+        alex.cursarMateria(bd, 2)
+        andy.cursarMateria(mate1, 10)
+        andy.cursarMateria(obj1, 10)
+
+        obj2.requisito(new Correlativas(materiasPrevias = #{obj1, mate1}))
+        obj3.requisito(new Correlativas(materiasPrevias = #{obj2, bd}))
+        pConc.requisito(new Correlativas(materiasPrevias = #{obj1, bd}))
+        desarrolloLocal.requisito(new Correlativas(materiasPrevias = #{meya}))
+
+        assert.that(alex.puedeInscribirseA(obj2))
+        assert.equals(#{epl, obj2, bd}, alex.materiasALasQuePuedeInscribirseEn(programacion))
+        assert.equals(#{meya}, alex.materiasALasQuePuedeInscribirseEn(tuess))
+        assert.notThat(alex.puedeInscribirseA(psicologia))
+        assert.throwsException({alex.inscribirAMateria(psicologia)})
+        assert.throwsException({alex.inscribirAMateria(economia)})
+        assert.notThat(alex.puedeInscribirseA(economia))
+        assert.notThat(alex.puedeInscribirseA(desarrolloLocal))
+        assert.throwsException({alex.inscribirAMateria(desarrolloLocal)})
+        
+        alex.inscribirAMateria(obj2)
+        andy.inscribirAMateria(obj2)
+
+        assert.throwsException({alex.inscribirAMateria(obj2)})
+        assert.equals(#{alex, andy}, obj2.estudiantesInscriptos())
+        
+    }
+
+    test "Parte 4: Distintos tipos de requisitos"{
+
+        psicologia.requisito(porAño)
+        antropologia.requisito(new Creditos(creditosNecesarios = 8))
+        sociologia.requisito(new Creditos(creditosNecesarios = 10))
+
+        andy.inscribirCarrera(to) 
+        andy.inscribirCarrera(programacion)
+        andy.cursarMateria(obj1, 10)
+        andy.cursarMateria(mate1, 10)
+
+        assert.equals(#{lea, cienciasSalud}, andy.materiasALasQuePuedeInscribirseEn(to)) 
+        andy.cursarMateria(lea, 10)
+        assert.equals(#{antropologia, cienciasSalud}, andy.materiasALasQuePuedeInscribirseEn(to)) 
+        andy.cursarMateria(antropologia, 10)
+        assert.equals(#{sociologia, cienciasSalud}, andy.materiasALasQuePuedeInscribirseEn(to)) 
+        andy.cursarMateria(cienciasSalud, 10)
+        assert.equals(#{sociologia, psicologia}, andy.materiasALasQuePuedeInscribirseEn(to))
+
+        andy.inscribirAMateria(psicologia)
+        andy.inscribirAMateria(sociologia)
+
+        assert.equals(#{andy}, psicologia.estudiantesInscriptos())
+        assert.equals(#{andy}, sociologia.estudiantesInscriptos())
+
+    }
 
 }
