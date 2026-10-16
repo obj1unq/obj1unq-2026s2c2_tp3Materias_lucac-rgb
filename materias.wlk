@@ -33,11 +33,11 @@ class Estudiante {
   method cursarMateria(materia, nota){
     self.validarNoAprobada(materia)
     self.validarNota(nota)
-    materiasCursadas.add(materia -> nota)
+    materiasCursadas.add(new MateriaCursada(materia = materia, nota = nota))
   }
 
   method validarNoAprobada(materia){
-    if (materiasCursadas.any({m => m.key() == materia && m.value() >= 6})) {
+    if (self.aproboLaMateria(materia)) {
       self.error("Ya se aprobo la materia " + materia.nombre())
     }
   }
@@ -49,11 +49,11 @@ class Estudiante {
   }
 
   method aproboLaMateria(materia){
-    return materiasCursadas.any({m => m.key() == materia && m.value() >= 6})
+    return materiasCursadas.any({m => m.esIgual(materia) && m.estaAprobada()})
   }
 
   method materiasAprobadasDeCarrera(carrera){
-    return materiasCursadas.filter({m => m.value() >= 6 && carrera.pertenece(m.key())})
+    return materiasCursadas.filter({m => carrera.pertenece(m.materia()) && m.estaAprobada()})
   }
 
   method cantidadDeMateriasAprobadasDeCarrera(carrera){
@@ -67,24 +67,24 @@ class Estudiante {
       self.error("No hay materias aprobadas en la carrera " + carrera)
     }
     
-    return materiasAprobadas.sum({m => m.value()}) / materiasAprobadas.size()
+    return materiasAprobadas.sum({m => m.nota()}) / materiasAprobadas.size()
   }
 
   method cantidadTotalDeMateriasAprobadas(){
-    return materiasCursadas.filter({m => m.value() >= 6}).size()
+    return materiasCursadas.filter({m => m.estaAprobada()}).size()
   }
 
   method promedioTotalDeMateriasAprobadas(){
-    const materiasAprobadas = materiasCursadas.filter({m => m.value() >= 6})
+    const materiasAprobadas = materiasCursadas.filter({m => m.estaAprobada()})
 
     if (materiasAprobadas.isEmpty()) {
       self.error("No hay materias aprobadas")
     }
-    return materiasAprobadas.sum({m => m.value()}) / materiasAprobadas.size()
+    return materiasAprobadas.sum({m => m.nota()}) / materiasAprobadas.size()
   }
 
   method historialDeLaMateria(materia){
-    return materiasCursadas.filter({m => m.key() == materia}) 
+    return materiasCursadas.filter({m => m.esIgual(materia)}) 
   }
 
   method puedeInscribirseA(materia) =
@@ -121,7 +121,7 @@ class Estudiante {
   }
 
   method sumarCreditos(materias){
-    return materias.sum({m => m.key().creditosQueOtorga()})
+    return materias.sum({m => m.materia().creditosQueOtorga()})
   }
 
   method aproboTodasLasDelAñoEnLaCarreraDe(año, materia){
@@ -169,6 +169,22 @@ class Materia {
 
   method puedeCursarla(estudiante){
     return requisito.cumple(estudiante, self)
+  }
+
+}
+
+
+class MateriaCursada{
+
+  const property materia 
+  const property nota 
+
+  method esIgual(unaMateria){
+    return materia == unaMateria
+  }
+
+  method estaAprobada(){
+    return nota >= 6
   }
 
 }

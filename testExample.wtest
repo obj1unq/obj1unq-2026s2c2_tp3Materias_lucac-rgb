@@ -67,8 +67,8 @@ describe "Test de Materias"{
         const historial = alex.historialDeLaMateria(mate1)
 
         assert.equals(2, historial.size())
-        assert.equals(2, historial.first().value())
-        assert.equals(8, historial.last().value())
+        assert.equals(2, historial.first().nota())
+        assert.equals(8, historial.last().nota())
 
     }
 
