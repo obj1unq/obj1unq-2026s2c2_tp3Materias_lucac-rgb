@@ -3,10 +3,10 @@ import requisitos.*
 
 describe "Test de Materias"{
 
-        const epl = new Materia(nombre = "Elementos de Programación y Lógica")
+        const epl = new Materia(nombre = "Elementos de Programación y Lógica", creditosQueOtorga = 8)
         const mate1 = new Materia(nombre = "Matemática 1", año = 1, creditosQueOtorga = 8)
         const obj1 = new Materia(nombre = "Objetos 1", año = 1, creditosQueOtorga = 8)
-        const obj2 = new Materia(nombre = "Objetos 2")
+        const obj2 = new Materia(nombre = "Objetos 2", cupo = 2)
         const obj3 = new Materia(nombre = "Objetos 3")
         const bd = new Materia(nombre = "Bases de Datos", año = 1, creditosQueOtorga = 8)
         const pConc = new Materia(nombre = "Programación Concurrente")
@@ -28,6 +28,10 @@ describe "Test de Materias"{
 
         const alex = new Estudiante()
         const andy = new Estudiante()
+        const luisa = new Estudiante()
+        const romina = new Estudiante()
+        const alicia = new Estudiante()
+        const ana = new Estudiante()
 
     test "Parte 1 Inscripción A Carreras"{
 
@@ -35,7 +39,7 @@ describe "Test de Materias"{
        alex.inscribirCarrera(tuess)
 
        assert.equals(#{programacion, tuess}, alex.carrerasCursando())
-       assert.notThat(alex.estaCursandoLaMateria(to))
+       assert.notThat(alex.estaInscriptoA(to))
        assert.that(alex.esDeUnaCarreraActual(bd))
        assert.notThat(alex.esDeUnaCarreraActual(psicologia))
        assert.throwsException({alex.inscribirCarrera(programacion)})
@@ -137,4 +141,64 @@ describe "Test de Materias"{
 
     }
 
+
+    test "Bonus 1"{
+
+        luisa.inscribirCarrera(programacion)
+        romina.inscribirCarrera(programacion)
+        alicia.inscribirCarrera(programacion)
+        ana.inscribirCarrera(programacion)
+        alex.inscribirCarrera(programacion)
+        andy.inscribirCarrera(programacion)
+
+        andy.cursarMateria(obj1, 10)
+        andy.cursarMateria(mate1, 10)
+
+        alex.cursarMateria(mate1, 8)
+        alex.cursarMateria(obj1, 10)
+
+        luisa.cursarMateria(obj1, 8)
+        luisa.cursarMateria(mate1, 7)
+
+        romina.cursarMateria(obj1, 6)
+        romina.cursarMateria(mate1, 6)
+
+        alicia.cursarMateria(obj1, 10)
+        alicia.cursarMateria(mate1, 9)
+        alicia.cursarMateria(epl, 6)
+        
+        ana.cursarMateria(obj1, 10)
+
+        alex.inscribirAMateria(obj2)
+        luisa.inscribirAMateria(obj2)
+
+        obj2.requisito(new Correlativas(materiasPrevias = #{obj1, mate1}))
+
+        assert.equals(#{alex, luisa}, obj2.estudiantesInscriptos())
+        assert.equals([], obj2.listaDeEspera())
+
+        romina.inscribirAMateria(obj2)
+
+        assert.throwsException({ana.inscribirAMateria(obj2)})
+        assert.equals(#{alex, luisa}, obj2.estudiantesInscriptos())
+        assert.equals([romina], obj2.listaDeEspera())
+        
+        andy.inscribirAMateria(obj2)
+
+        assert.equals(#{alex, luisa}, obj2.estudiantesInscriptos())
+        assert.equals([romina, andy], obj2.listaDeEspera())
+
+        alicia.inscribirAMateria(obj2)
+        assert.equals(#{alex, luisa}, obj2.estudiantesInscriptos())
+        assert.equals([romina, andy, alicia], obj2.listaDeEspera())
+
+        obj2.retirarEstudiante(luisa)
+
+        assert.equals(#{alex, romina}, obj2.estudiantesInscriptos())
+        assert.equals([andy, alicia], obj2.listaDeEspera())
+
+
+    }
+
 }
+

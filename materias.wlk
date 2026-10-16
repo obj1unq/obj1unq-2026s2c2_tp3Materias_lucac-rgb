@@ -4,13 +4,12 @@ class Estudiante {
 
   const carrerasCursando = #{}
   const materiasCursadas = []
-  const materiasCursando = #{}
-
+  const inscripciones = #{}
+  
   method inscribirCarrera(carrera){
     self.validarInscripcionACarrera(carrera)
     carrerasCursando.add(carrera)
   }
-
 
   method validarInscripcionACarrera(carrera){
     if (carrerasCursando.contains(carrera)) {
@@ -22,8 +21,8 @@ class Estudiante {
     return carrerasCursando
   }
 
-  method estaCursandoLaMateria(materia){
-    return materiasCursando.contains(materia)
+  method estaInscriptoA(materia){
+    return inscripciones.contains(materia)
   }
 
   method materiasCursadas() {
@@ -90,7 +89,7 @@ class Estudiante {
   method puedeInscribirseA(materia) =
     self.esDeUnaCarreraActual(materia)
     && !self.aproboLaMateria(materia)
-    && !self.estaCursandoLaMateria(materia)
+    && !self.estaInscriptoA(materia)
     && materia.puedeCursarla(self)
 
   method esDeUnaCarreraActual(materia) =
@@ -100,7 +99,7 @@ class Estudiante {
     if (!self.puedeInscribirseA(materia)) {
       self.error("El estudiante no puede inscribirse a la materia " + materia.nombre())
     }
-    materiasCursando.add(materia)
+    inscripciones.add(materia)
     materia.agregarEstudiante(self)
 }
 
@@ -127,6 +126,19 @@ class Estudiante {
   method aproboTodasLasDelAñoEnLaCarreraDe(año, materia){
     return self.carreraDe(materia).materiasDelAño(año).all({ m => self.aproboLaMateria(m) })
   }
+
+  method materiasEnEspera(){
+    return inscripciones.filter({m => m.estaEnListaDeEspera(self)})
+  }
+
+  method materiasConfirmadas(){
+   return inscripciones.filter({m => m.estaEnListaDeEstudiantes(self)})
+  }
+
+  method darseDeBajaDe(materia) {
+   materia.retirarEstudiante(self)  
+   inscripciones.remove(materia)
+  } 
 
 }
 
@@ -155,12 +167,15 @@ class Materia {
 
   const property nombre = ""
   const estudiantesInscriptos = #{}
+  const listaDeEspera = []
   var property requisito = nada
   var property creditosQueOtorga = 0
   var property año = 0
-
+  var property cupo = 30
+  
   method agregarEstudiante(estudiante){
-    estudiantesInscriptos.add(estudiante)
+    if(estudiantesInscriptos.size() == cupo){listaDeEspera.add(estudiante)}
+    else {estudiantesInscriptos.add(estudiante)}
   }
 
   method estudiantesInscriptos(){
@@ -171,8 +186,38 @@ class Materia {
     return requisito.cumple(estudiante, self)
   }
 
-}
+  method retirarEstudiante(estudiante){
+    self.validarEstudianteEnLaMateria(estudiante)
+    estudiantesInscriptos.remove(estudiante)
+    listaDeEspera.remove(estudiante)
+    self.agregarPrimerEstudianteEnListaDeEspera()
+  }
 
+  method validarEstudianteEnLaMateria(estudiante){
+    if(!self.estaEnListaDeEstudiantes(estudiante) && !self.estaEnListaDeEspera(estudiante)){
+      self.error("El estudiante " + estudiante + " no está inscripto en la materia")
+    }
+  }
+
+  method agregarPrimerEstudianteEnListaDeEspera(){
+    if(!listaDeEspera.isEmpty()){
+      estudiantesInscriptos.add(listaDeEspera.first())
+      listaDeEspera.remove(listaDeEspera.first())
+    }
+  }
+
+  method listaDeEspera(){return listaDeEspera}
+
+  method estaEnListaDeEspera(estudiante){
+    return listaDeEspera.contains(estudiante)
+  }
+
+  method estaEnListaDeEstudiantes(estudiante){
+    return estudiantesInscriptos.contains(estudiante)
+  }
+
+
+}
 
 class MateriaCursada{
 
